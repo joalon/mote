@@ -23,6 +23,7 @@ import logging
 from six.moves import html_parser as html_parser_six
 
 from bs4 import BeautifulSoup
+from jinja2.utils import urlize
 from flask import Flask, render_template, request, url_for, session, redirect
 from flask import abort
 from flask_fas_openid import fas_login_required, FAS
@@ -272,6 +273,12 @@ def get_meeting_log():
                 full_log_file_name = a['href']
                 a['href'] = link_prefix_ending + full_log_file_name
                 a['target'] = "_blank"
+
+        regex = re.compile("https?://[^ \n\r\s]+")
+        log_display = fetch_soup.find('pre')
+        looks_like_link = log_display.find_all(text=regex)
+        for link in looks_like_link:
+            link.replace_with(urlize(link))
 
         body_content = str(fetch_soup.body)
         body_content = body_content.replace("</br>", "")
